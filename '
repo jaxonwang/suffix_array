@@ -1,0 +1,75 @@
+// fn suffix_sarray(sarr: Vec<u8>) ->Vec<usize>{
+//
+// }
+//
+
+use std::convert::TryInto;
+
+fn index(arr: &[u8], i: usize) -> u8{
+    if i < arr.len(){
+        arr[i]
+    }else if i>=arr.len() && i < arr.len() + 2{
+        0
+    }else {
+        panic!(format!("bad access len {} i {}", arr.len(), i))
+    }
+}
+
+fn sort_lexicographer(arr: &[u8]) -> Vec<u8> {
+    let mut sa: Vec<usize> = (0..arr.len()).collect();
+
+    fn sort_by(arr: &[u8], sarr: &mut [usize], offset: usize) {
+        let mut sorted = vec![0usize; sarr.len()];
+        let mut count = [0usize; 256];
+        for e in sarr.iter() {
+            count[index(arr, *e+offset) as usize] += 1;
+        }
+        for i in 1..count.len() {
+            count[i] = count[i - 1] + count[i];
+        }
+        for v in sarr.iter().rev() {
+            let index = &mut count[index(arr, *v + offset) as usize];
+            *index -= 1;
+            sorted[*index as usize] = *v;
+        }
+        sarr.copy_from_slice(&sorted[..]);
+    }
+
+    for offset in (0..3).rev() {
+        sort_by(arr, &mut sa[..], offset);
+    }
+
+    let mut rank = 0usize; // map each value to rank
+    let gettuple = |i|(index(arr, i), index(arr, i+1), index(arr, i+2));
+    let mut ranks = vec![0;sa.len()];
+    let mut lastvisited = gettuple(0);
+    for i in 0..sa.len() {
+        let tmp = gettuple(sa[i]);
+        if lastvisited != tmp{
+            rank += 1;
+            lastvisited = tmp;
+        }else{
+        }
+        ranks[i] = rank;
+    }
+    let ranks = sa.iter().map(|i|(*i).try_into().unwrap()).collect();
+    let mut ret = vec![0usize;sa.len()];
+    for (i, v) in sa.iter(){
+        ret[sa] = ranks[i] as ;
+    }
+    ret
+
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sort_lexicographer() {
+        // let mut a = vec![1, 5, 6, 11, 13, 13, 14, 8, 9, 0, 5, 5, 3, 2, 4, 7, 3, 5];
+        let a = "mississippi";
+        let b = sort_lexicographer(a.as_bytes());
+        println!("{:?}", b);
+    }
+}
