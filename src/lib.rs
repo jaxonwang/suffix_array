@@ -183,6 +183,7 @@ pub fn suffix_array_str(a: &str) -> Vec<usize> {
         .map(|i| *i as usize)
         .collect::<Vec<usize>>();
     a.push(0);
+
     suffix_array(&a)
 }
 
@@ -191,11 +192,12 @@ mod tests {
     use super::*;
     use rand::Rng;
     use std::str;
+    use std::time::{Duration, Instant};
 
-    fn naive_suffix_array(arr:&str) -> Vec<usize>{
+    fn naive_suffix_array(arr: &str) -> Vec<usize> {
         let arr = arr.as_bytes();
-        let mut s_arr = (0..arr.len()+1).collect::<Vec<usize>>();
-        let compare = |a:&usize, b:&usize|arr[*a..arr.len()].cmp(&arr[*b..arr.len()]);
+        let mut s_arr = (0..arr.len() + 1).collect::<Vec<usize>>();
+        let compare = |a: &usize, b: &usize| arr[*a..arr.len()].cmp(&arr[*b..arr.len()]);
         s_arr.sort_by(compare);
         return s_arr;
     }
@@ -208,12 +210,25 @@ mod tests {
         let mut rng = rand::thread_rng();
         assert_eq!(vec![6, 5, 3, 1, 0, 4, 2], suffix_array_str("banana"));
 
-        let mut testrnd = |len|{
-            let s = (0..len).map(|_|rng.gen::<u8>() % 128).collect::<Vec<u8>>();
+        let mut testrnd = |len| {
+            let s = (0..len).map(|_| rng.gen::<u8>() % 120).collect::<Vec<u8>>();
             let s = str::from_utf8(&s).unwrap();
-            assert_eq!(naive_suffix_array(s), suffix_array_str(s));
-        };
-        testrnd(50);
 
+            let t0 = Instant::now();
+            let a = naive_suffix_array(s);
+            let t1 = Instant::now();
+            let b = suffix_array_str(s);
+            let t2 = Instant::now();
+            println!(
+                "Array length: {}. Naive time: {:?}. DC3 time: {:?}",
+                len,
+                t1.duration_since(t0),
+                t2.duration_since(t1)
+            );
+            assert_eq!(a, b);
+        };
+        for i in 0..5 {
+            testrnd(i * 1000 + 100);
+        }
     }
 }
